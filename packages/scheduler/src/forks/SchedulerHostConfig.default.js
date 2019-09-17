@@ -113,13 +113,14 @@ if (
     const initialTime = Date.now();
     getCurrentTime = () => Date.now() - initialTime;
   }
-
+  // RAF循环调度是否开启
   let isRAFLoopRunning = false;
   let isMessageLoopRunning = false;
   let scheduledHostCallback = null;
   let rAFTimeoutID = -1;
   let taskTimeoutID = -1;
 
+  // 开启MessageLoop 实现机制
   let frameLength = enableMessageLoopImplementation
     ? // We won't attempt to align with the vsync. Instead we'll yield multiple
       // times per frame, often enough to keep it responsive even at really
@@ -130,9 +131,11 @@ if (
       // heuristic tracking will adjust this value to a faster fps if we get
       // more frequent animation frames.
       33.33;
-
+  // 上一个 requestAnimationFrame执行时间,
   let prevRAFTime = -1;
+  // 上一个 interval 执行时间
   let prevRAFInterval = -1;
+  // 帧截止时间，预测中本帧的截止时间，如果当前时间小于帧截止时间，则表明本帧中有空闲时间
   let frameDeadline = 0;
 
   let fpsLocked = false;
@@ -204,7 +207,8 @@ if (
       fpsLocked = false;
     }
   };
-
+  // 执行任务在截止时间线之前，
+  // 实际在idle 阶段执行的方法；
   const performWorkUntilDeadline = () => {
     if (enableMessageLoopImplementation) {
       if (scheduledHostCallback !== null) {
@@ -264,11 +268,11 @@ if (
       needsPaint = false;
     }
   };
-
+  // 通过信道 来派发事件
   const channel = new MessageChannel();
   const port = channel.port2;
   channel.port1.onmessage = performWorkUntilDeadline;
-
+  // 对requestAnimationFrame使用的封装，不断的调度任务
   const onAnimationFrame = rAFTime => {
     if (scheduledHostCallback === null) {
       // No scheduled work. Exit.
@@ -288,6 +292,8 @@ if (
     // after that.
     isRAFLoopRunning = true;
     requestAnimationFrame(nextRAFTime => {
+      // 如果网页处于后台状态，（意味着没有任何的rePaint、reFlow任务，可以认为都是空闲时间）
+      // 则使用setTimeout来调度任务；Timeout 是3个帧的间隔时间，如果RAF正常，则不会调用Timeout
       clearTimeout(rAFTimeoutID);
       onAnimationFrame(nextRAFTime);
     });
@@ -295,6 +301,8 @@ if (
     // requestAnimationFrame is throttled when the tab is backgrounded. We
     // don't want to stop working entirely. So we'll fallback to a timeout loop.
     // TODO: Need a better heuristic for backgrounded work.
+    // 用于处理当 tab标签栏未被激活的情况
+
     const onTimeout = () => {
       frameDeadline = getCurrentTime() + frameLength / 2;
       performWorkUntilDeadline();
@@ -310,6 +318,8 @@ if (
     ) {
       const rAFInterval = rAFTime - prevRAFTime;
       if (!fpsLocked && prevRAFInterval !== -1) {
+        // 当帧未锁定时，通过两个连续的帧的间隔，动态调整帧率
+
         // We've observed two consecutive frame intervals. We'll use this to
         // dynamically adjust the frame rate.
         //
@@ -319,6 +329,7 @@ if (
         // optimizing. For example, if we're running on 120hz display or 90hz VR
         // display. Take the max of the two in case one of them was an anomaly
         // due to missed frame deadlines.
+        //如果出现当前帧的持续时间，小于约定帧持续时间，则比较前一帧和当前帧，并从中选择大的。时间长的
         if (rAFInterval < frameLength && prevRAFInterval < frameLength) {
           frameLength =
             rAFInterval < prevRAFInterval ? prevRAFInterval : rAFInterval;
@@ -336,6 +347,8 @@ if (
     frameDeadline = rAFTime + frameLength;
 
     // We use the postMessage trick to defer idle work until after the repaint.
+    // 使用postMessage的方式 来确定帧中空闲时间
+
     port.postMessage(null);
   };
 

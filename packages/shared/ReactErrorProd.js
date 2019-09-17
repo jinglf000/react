@@ -11,6 +11,7 @@
 // build, and in production they will be minified.
 
 function ReactErrorProd(error) {
+  // prod 的错误信息，被压缩成error Code
   const code = error.message;
   let url = 'https://reactjs.org/docs/error-decoder.html?invariant=' + code;
   for (let i = 1; i < arguments.length; i++) {

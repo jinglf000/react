@@ -6,6 +6,7 @@
  *
  * @flow
  */
+// channel Port 任务
 
 import warningWithoutStack from './warningWithoutStack';
 

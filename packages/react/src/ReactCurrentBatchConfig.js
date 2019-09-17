@@ -12,6 +12,7 @@ import type {SuspenseConfig} from 'react-reconciler/src/ReactFiberSuspenseConfig
 /**
  * Keeps track of the current batch's configuration such as how long an update
  * should suspend for if it needs to.
+ * Suspense 容器组件用于处理Promise版的组件加载
  */
 const ReactCurrentBatchConfig = {
   suspense: (null: null | SuspenseConfig),

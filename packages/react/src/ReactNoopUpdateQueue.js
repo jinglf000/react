@@ -7,11 +7,20 @@
 
 import warningWithoutStack from 'shared/warningWithoutStack';
 
+// 已经卸载的组件，重新触发更新时，警告
+// 空的更新队列，用于显示警告内容。
+// 真实个更新队列，有intenal Instance 注入进来，injection
 const didWarnStateUpdateForUnmountedComponent = {};
 
+/**
+ * 更新警告
+ * @param {Object} publicInstance 外部的实例，用户使用到的
+ * @param {*} callerName
+ */
 function warnNoop(publicInstance, callerName) {
   if (__DEV__) {
     const constructor = publicInstance.constructor;
+    // name for display
     const componentName =
       (constructor && (constructor.displayName || constructor.name)) ||
       'ReactClass';
@@ -37,6 +46,7 @@ function warnNoop(publicInstance, callerName) {
  */
 const ReactNoopUpdateQueue = {
   /**
+   * 组合 组件
    * Checks whether or not this composite component is mounted.
    * @param {ReactClass} publicInstance The instance we want to test.
    * @return {boolean} True if mounted, false otherwise.
@@ -67,6 +77,7 @@ const ReactNoopUpdateQueue = {
   },
 
   /**
+   * deperate
    * Replaces all of the state. Always use this or `setState` to mutate state.
    * You should treat `this.state` as immutable.
    *

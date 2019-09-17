@@ -24,7 +24,7 @@ function Component(props, context, updater) {
   // If a component has string refs, we will assign a different object later.
   this.refs = emptyObject;
   // We initialize the default updater but the real one gets injected by the
-  // renderer.
+  // renderer.  注入进去的？类似于redux每次更新都有明确的标记
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
@@ -55,6 +55,7 @@ Component.prototype.isReactComponent = {};
  * @final
  * @protected
  */
+// setState 的更新逻辑。可以传递函数，对象。或者回调函数
 Component.prototype.setState = function(partialState, callback) {
   invariant(
     typeof partialState === 'object' ||
@@ -68,7 +69,7 @@ Component.prototype.setState = function(partialState, callback) {
 
 /**
  * Forces an update. This should only be invoked when it is known with
- * certainty that we are **not** in a DOM transaction.
+ * certainty that we are **not** in a DOM transaction.  DOM 事务？
  *
  * You may want to call this when you know that some deeper aspect of the
  * component's state has changed but `setState` was not called.
@@ -89,6 +90,7 @@ Component.prototype.forceUpdate = function(callback) {
  * we would like to deprecate them, we're not going to move them over to this
  * modern base class. Instead, we define a getter that warns if it's accessed.
  */
+// 尽量不要使用oldApI。isMounted和replaceState
 if (__DEV__) {
   const deprecatedAPIs = {
     isMounted: [
@@ -127,6 +129,7 @@ ComponentDummy.prototype = Component.prototype;
 
 /**
  * Convenience component with default shallow equality check for sCU.
+ * pureComponent 的实现，继承自Component
  */
 function PureComponent(props, context, updater) {
   this.props = props;
